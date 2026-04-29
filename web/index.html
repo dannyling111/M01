@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AllWeather Brain · 机构级宏观全天候大脑</title>
+<meta name="description" content="基于 AXIOM 7层38引擎的全天候宏观分析 + 预测核对回路 · 个人投研驾驶舱" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>" />
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link rel="stylesheet" href="./css/style.css" />
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen">
+
+<!-- ========== HEADER ========== -->
+<header class="border-b border-slate-800 bg-slate-900/70 backdrop-blur sticky top-0 z-50">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="text-2xl">🧠</span>
+      <div>
+        <h1 class="text-lg font-bold leading-tight">AllWeather Brain</h1>
+        <p class="text-xs text-slate-400 leading-tight">机构级宏观全天候大脑 · AXIOM v1.0 MVP-9</p>
+      </div>
+    </div>
+    <div class="text-right text-xs text-slate-400">
+      <div id="data-version">data: <span class="font-mono">loading...</span></div>
+      <div id="last-update">updated: <span class="font-mono">--</span></div>
+    </div>
+  </div>
+
+  <!-- TAB NAV -->
+  <nav class="max-w-7xl mx-auto px-4 flex gap-1 overflow-x-auto">
+    <button data-tab="overview"    class="tab-btn tab-active">① 现状</button>
+    <button data-tab="signals"     class="tab-btn">② 信号灯</button>
+    <button data-tab="scenarios"   class="tab-btn">③ 情景概率</button>
+    <button data-tab="markets"     class="tab-btn">④ 仪表盘</button>
+    <button data-tab="predictions" class="tab-btn">⑤ 预测核对 ★</button>
+    <button data-tab="brief"       class="tab-btn">📰 简报</button>
+  </nav>
+</header>
+
+<main class="max-w-7xl mx-auto px-4 py-6">
+
+<!-- ========== TAB 1: OVERVIEW ========== -->
+<section id="tab-overview" class="tab-content">
+
+  <!-- 4 个核心 KPI -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="kpi">
+      <div class="kpi-label">主导情景</div>
+      <div class="kpi-value text-orange-400" id="kpi-scenario">--</div>
+      <div class="kpi-sub" id="kpi-scenario-prob">--%</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">美林时钟</div>
+      <div class="kpi-value text-cyan-400" id="kpi-clock">--</div>
+      <div class="kpi-sub" id="kpi-clock-sub">G:-- I:--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">压力 / 触发数</div>
+      <div class="kpi-value" id="kpi-stress">--</div>
+      <div class="kpi-sub" id="kpi-stress-sub">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">综合 score</div>
+      <div class="kpi-value" id="kpi-score">--</div>
+      <div class="kpi-sub" id="kpi-score-sub">9 引擎加权</div>
+    </div>
+  </div>
+
+  <!-- AXIOM 9 引擎卡片 -->
+  <h2 class="section-title">AXIOM 9 引擎闭环 <span class="text-xs text-slate-500">· MVP-9</span></h2>
+  <div id="engine-cards" class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-8"></div>
+
+  <!-- 美林时钟可视化 -->
+  <h2 class="section-title">美林时钟（L2-03）</h2>
+  <div class="card mb-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div><canvas id="merrillChart" height="280"></canvas></div>
+      <div class="text-sm">
+        <table class="w-full">
+          <thead><tr class="text-slate-400"><th class="text-left py-1">象限</th><th>多</th><th>空</th></tr></thead>
+          <tbody class="text-slate-300">
+            <tr class="border-t border-slate-800"><td class="py-1">复苏 (↑G ↓I)</td><td>股 / 信用</td><td>现金</td></tr>
+            <tr class="border-t border-slate-800"><td class="py-1">过热 (↑G ↑I)</td><td>商品 / 周期股</td><td>债</td></tr>
+            <tr class="border-t border-slate-800"><td class="py-1">滞胀 (↓G ↑I)</td><td>黄金 / 现金</td><td>股 / 长债</td></tr>
+            <tr class="border-t border-slate-800"><td class="py-1">衰退 (↓G ↓I)</td><td>债 / 防御股</td><td>商品 / 风险</td></tr>
+          </tbody>
+        </table>
+        <p class="text-xs text-slate-500 mt-3" id="merrill-explain">--</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========== TAB 2: SIGNALS ========== -->
+<section id="tab-signals" class="tab-content hidden">
+  <h2 class="section-title">信号灯阵列（L4-08 阈值引擎）</h2>
+  <p class="text-sm text-slate-400 mb-4">基于 AXIOM 三级阈值（关注 / 预警 / 触发）→ 自动着色</p>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs uppercase border-b border-slate-800">
+        <tr>
+          <th class="text-left py-2 px-3">信号</th>
+          <th>引擎</th>
+          <th>关注</th>
+          <th>预警</th>
+          <th>触发</th>
+          <th>当前</th>
+          <th>状态</th>
+          <th class="text-left">解读</th>
+        </tr>
+      </thead>
+      <tbody id="signals-tbody"></tbody>
+    </table>
+  </div>
+
+  <h3 class="section-title mt-6">距触发最近的 3 个信号</h3>
+  <div id="nearest-triggers" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+</section>
+
+<!-- ========== TAB 3: SCENARIOS ========== -->
+<section id="tab-scenarios" class="tab-content hidden">
+  <h2 class="section-title">L6-01 概率加权情景矩阵</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+    <div class="card"><canvas id="scenarioChart" height="260"></canvas></div>
+    <div class="card">
+      <h4 class="text-sm font-semibold text-slate-300 mb-2">三维信号</h4>
+      <div id="dim-radar" style="height:260px"><canvas id="dimChart"></canvas></div>
+    </div>
+  </div>
+
+  <h3 class="section-title">各情景下资产预期收益（年化区间）</h3>
+  <div class="card overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs uppercase border-b border-slate-800">
+        <tr>
+          <th class="text-left py-2 px-3">情景</th>
+          <th>概率</th><th>SPX</th><th>US10Y</th><th>Gold</th><th>DXY</th><th>BTC</th><th>策略</th>
+        </tr>
+      </thead>
+      <tbody id="scenario-tbody"></tbody>
+    </table>
+  </div>
+
+  <h3 class="section-title">Top 3 贡献引擎（L6-03 贝叶斯归因）</h3>
+  <div id="top-contrib" class="grid grid-cols-1 md:grid-cols-3 gap-3"></div>
+</section>
+
+<!-- ========== TAB 4: MARKETS ========== -->
+<section id="tab-markets" class="tab-content hidden">
+  <h2 class="section-title">L4-07 资产现状仪表盘</h2>
+  <div id="asset-cards" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-6"></div>
+
+  <h3 class="section-title">历史回看（vs 3M / 1Y / 5Y）</h3>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs uppercase border-b border-slate-800">
+        <tr>
+          <th class="text-left py-2 px-3">指标</th>
+          <th>当前</th><th>3M 前</th><th>Δ 3M</th><th>1Y 前</th><th>Δ 1Y</th><th>5Y 百分位</th>
+        </tr>
+      </thead>
+      <tbody id="lookback-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== TAB 5: PREDICTIONS ========== -->
+<section id="tab-predictions" class="tab-content hidden">
+  <h2 class="section-title">L5 预测核对回路 <span class="text-xs text-slate-500">· 99% 工具没有的护城河</span></h2>
+
+  <!-- 摘要 KPI -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <div class="kpi">
+      <div class="kpi-label">登记预测</div>
+      <div class="kpi-value" id="pred-total">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">已结算</div>
+      <div class="kpi-value text-cyan-400" id="pred-settled">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">我的胜率</div>
+      <div class="kpi-value text-emerald-400" id="pred-mywin">--</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Brier Score</div>
+      <div class="kpi-value" id="pred-brier">--</div>
+    </div>
+  </div>
+
+  <!-- 来源对比 -->
+  <h3 class="section-title">各来源胜率对比</h3>
+  <div class="card overflow-x-auto mb-6">
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs uppercase border-b border-slate-800">
+        <tr><th class="text-left py-2 px-3">来源</th><th>n</th><th>胜率</th><th>平均置信度</th><th>Brier</th><th>过度自信</th></tr>
+      </thead>
+      <tbody id="source-tbody"></tbody>
+    </table>
+  </div>
+
+  <!-- 校准曲线 -->
+  <h3 class="section-title">校准曲线</h3>
+  <div class="card mb-6"><canvas id="calibChart" height="220"></canvas></div>
+
+  <!-- Pending 列表 -->
+  <h3 class="section-title">Pending 预测（按到期排序）</h3>
+  <div class="card overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead class="text-slate-400 text-xs uppercase border-b border-slate-800">
+        <tr><th class="text-left py-2 px-3">来源</th><th>资产</th><th>方向</th><th>目标</th><th>置信度</th><th>到期</th><th class="text-left">依据</th></tr>
+      </thead>
+      <tbody id="pending-tbody"></tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ========== TAB 6: BRIEF ========== -->
+<section id="tab-brief" class="tab-content hidden">
+  <h2 class="section-title">📰 今日简报（L4 简报层）</h2>
+  <p class="text-sm text-slate-400 mb-4">基于当前 9 引擎输出 + 信号变化自动生成</p>
+  <article id="brief-content" class="card prose prose-invert max-w-none text-sm"></article>
+</section>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="border-t border-slate-800 mt-12 py-6 text-center text-xs text-slate-500">
+  <div>AllWeather Brain · MVP-9 · <a href="https://github.com/dannyling111/M-AllWeather-Brain" class="hover:text-slate-300">GitHub</a> · <span id="footer-time">--</span></div>
+  <div class="mt-1">数据为 demo 演示，非投资建议</div>
+</footer>
+
+<!-- ========== SCRIPTS ========== -->
+<script src="./js/data.js"></script>
+<script src="./js/axiom.js"></script>
+<script src="./js/charts.js"></script>
+<script src="./js/predictions.js"></script>
+<script src="./js/app.js"></script>
+</body>
+</html>

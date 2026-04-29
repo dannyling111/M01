@@ -1,0 +1,19 @@
+# 核心（必装）
+duckdb>=0.10
+pandas>=2.0
+PyYAML>=6.0
+
+# 数据源
+yfinance>=0.2
+fredapi>=0.5
+ccxt>=4.0
+
+# 简报 / RSS
+feedparser>=6.0
+
+# 可选：从 .env 读 API Key
+python-dotenv>=1.0
+
+# 可选：调用 Claude/DeepSeek
+anthropic>=0.20
+requests>=2.31
